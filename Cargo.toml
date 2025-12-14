@@ -1,0 +1,93 @@
+[package]
+name = "saorsa-logic"
+version = "0.1.0"
+edition = "2021"
+authors = ["Saorsa Labs Limited <david@saorsalabs.com>"]
+license = "MIT OR Apache-2.0"
+description = "Pure logic crate for Saorsa network - zkVM compatible, no_std"
+homepage = "https://github.com/dirvine/saorsa-logic"
+repository = "https://github.com/dirvine/saorsa-logic"
+documentation = "https://docs.rs/saorsa-logic"
+keywords = ["zkvm", "attestation", "verification", "no_std", "saorsa"]
+categories = ["cryptography", "no-std"]
+readme = "README.md"
+rust-version = "1.75"
+
+[lib]
+name = "saorsa_logic"
+path = "src/lib.rs"
+
+# ============================================================================
+# CRITICAL: no_std by default for zkVM compatibility
+# ============================================================================
+# This crate is designed to run inside zkVMs (SP1, RISC Zero, etc.)
+# All code must be deterministic and avoid:
+# - std::io, std::fs, std::net
+# - System calls, randomness (except from prover input)
+# - Floating point operations
+# - Dynamic memory allocation (where possible)
+# ============================================================================
+
+[features]
+default = []
+
+# Enable std for testing and native execution
+std = ["blake3/std", "dep:thiserror"]
+
+# Enable alloc for heap allocation (required for most operations)
+alloc = []
+
+# zkVM target support
+zkvm = []
+
+# SP1 zkVM specific optimizations
+sp1 = ["zkvm"]
+
+# RISC Zero zkVM specific optimizations
+risc0 = ["zkvm"]
+
+# Test utilities
+test-utils = ["std"]
+
+[dependencies]
+# BLAKE3 hashing - no_std compatible
+blake3 = { version = "1.5", default-features = false }
+
+# Serialization - no_std compatible with alloc support
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+
+# Error handling (std only)
+thiserror = { version = "2.0", optional = true }
+
+# For signature verification in zkVM, we need pure Rust implementations
+# Note: ML-DSA verification will be added when SP1 supports it natively
+
+[dev-dependencies]
+# Testing with std enabled
+proptest = "1.4"
+rand = "0.8"
+hex = "0.4"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+
+# zkVM-optimized profile
+[profile.release-zkvm]
+inherits = "release"
+# Optimize for cycle count in zkVM
+opt-level = "s"
+lto = true
+codegen-units = 1
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
