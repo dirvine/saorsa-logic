@@ -51,7 +51,7 @@ test-utils = ["std"]
 
 [dependencies]
 # BLAKE3 hashing - no_std compatible
-blake3 = { version = "1.5", default-features = false }
+blake3 = { version = ">=1.5, <1.8", default-features = false }
 
 # Serialization - no_std compatible with alloc support
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
